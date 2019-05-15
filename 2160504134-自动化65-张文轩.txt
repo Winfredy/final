@@ -1,0 +1,65 @@
+clc
+clear
+pt = 'D:\z-Êý×ÖÍ¼Ïñ×÷Òµ\µÚÆß´Î×÷Òµ\';
+dis=dir(pt);
+names={dis.name};
+t=0;
+for i=1:length(names)
+    try
+        image=imread(names{i});
+        nm=names{i}
+        [c,r]=find(nm=='.')
+        name=nm(1:r-1)
+    catch
+        continue
+    end
+    try
+        image=rgb2gray(image);
+    catch
+    end
+    figure
+    level = graythresh(image);
+    subplot(2,2,1)
+    imshow(image)
+    title(name)
+    BW = imbinarize(image,level);
+    BW_sobel = edge(BW,'sobel');
+    subplot(2,2,2)
+    imshow(BW_sobel)
+    title("sobel ±ßÔµ¼ì²â")
+    BW_Roberts = edge(image,'Roberts');
+    subplot(2,2,3)
+    imshow(BW_Roberts)
+    title("Roberts ±ßÔµ¼ì²â")
+    BW_canny = edge(image,'Canny');
+    subplot(2,2,4)
+    imshow(BW_canny);
+    title("canny ±ßÔµ¼ì²â") 
+    figure
+    for num=1:3
+        switch num
+            case 1
+                p= BW_sobel;
+            case 2
+                p=BW_Roberts;
+            case 3
+                p=BW_canny;
+        end
+        [H, theta, rho]= hough(p,'Theta',-90:0.5:89);
+        peak=houghpeaks(H , 20,'Threshold',0.3*max(H(:)));
+        lines=houghlines(p ,theta,rho,peak);
+        subplot(2,2,1)
+        imshow(image)
+        title(name)
+        subplot(2,2,num+1)
+        imshow(p ,[])
+        title('Hough Transform Detect Result')
+        hold on
+        for k=1:length(lines)
+            xy=[lines(k).point1;lines(k).point2];
+            plot(xy(:,1),xy(:,2),'LineWidth',2,'Color',[1 0 0]);
+        end
+        pictitle={"sobel±ßÔµ¼ì²âºóhoughÖ±Ïß¼ì²â","Roberts±ßÔµ¼ì²âºóhoughÖ±Ïß¼ì²â", "canny±ßÔµ¼ì²âºóhoughÖ±Ïß¼ì²â"};
+        title(pictitle{num})
+    end
+end
